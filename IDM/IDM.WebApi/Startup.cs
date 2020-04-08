@@ -25,7 +25,7 @@ namespace IDM.WebApi
             services.AddDbContext<IdmContext>(options =>
             options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<IdmContext>();
+            services.AddIdentity<User, Role>().AddEntityFrameworkStores<IdmContext>();
 
             services.AddControllers();
 
