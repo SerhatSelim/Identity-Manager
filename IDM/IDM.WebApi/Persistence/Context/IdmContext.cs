@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IDM.WebApi.Persistence.Context
 {
-    public class IdmContext : IdentityDbContext<User>
+    public class IdmContext : IdentityDbContext<User, Role, int>
     {
-        public IdmContext(DbContextOptions<IdmContext> dbContext) : base(dbContext) { }
- 
-         
+        public IdmContext(DbContextOptions options) : base(options)
+        {
+        }
     }
 }
