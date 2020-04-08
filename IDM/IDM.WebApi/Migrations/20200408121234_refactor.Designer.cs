@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IDM.WebApi.Migrations
 {
     [DbContext(typeof(IdmContext))]
-    [Migration("20200408112115_primarykeyup")]
-    partial class primarykeyup
+    [Migration("20200408121234_refactor")]
+    partial class refactor
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
