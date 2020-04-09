@@ -8,7 +8,7 @@ using System.Web;
 
 namespace IDM.WebApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -23,6 +23,7 @@ namespace IDM.WebApi.Controllers
         }
 
         [HttpPost]
+        [Route("CreateUserAsync")]
         public async Task<IdentityResult> CreateUserAsync([FromBody] User user)
         {
             var result = await userManager.CreateAsync(user, "1234.qqqQ");
@@ -30,7 +31,9 @@ namespace IDM.WebApi.Controllers
             return result;
         }
 
+
         [HttpPost]
+        [Route("Login")]
         public async Task<Microsoft.AspNetCore.Identity.SignInResult> Login([FromBody] UserDto userDto)
         {
             User user = await userManager.FindByEmailAsync(userDto.Email.ToString());
@@ -42,7 +45,7 @@ namespace IDM.WebApi.Controllers
             {
                 await userManager.ResetAccessFailedCountAsync(user); //Önceki hataları girişler neticesinde +1 arttırılmış tüm değerleri 0(sıfır)a çekiyoruz.
 
-              
+
             }
             else
             {
@@ -59,6 +62,7 @@ namespace IDM.WebApi.Controllers
                         return result;
                     else
                         return result;
+                    return result;
                 }
             }
 
@@ -69,7 +73,9 @@ namespace IDM.WebApi.Controllers
 
 
 
+
         [HttpPost]
+        [Route("PasswordReset")]
         public async Task<string> PasswordReset([FromBody] UserDto userDto)
         {
             User user = await userManager.FindByEmailAsync(userDto.Email);
@@ -78,64 +84,67 @@ namespace IDM.WebApi.Controllers
                 string resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
                 return resetToken;
             }
-            return "null";
+            return "PasswordReset";
         }
 
-        [HttpPost("[action]/{userId}/{token}")]
+        [HttpPost("UpdatePassword/{userId}/{token}")]
         public async Task<IdentityResult> UpdatePassword(UserDto model, string userId, string token)
         {
             User user = await userManager.FindByIdAsync(userId);
             IdentityResult result = await userManager.ResetPasswordAsync(user, HttpUtility.UrlDecode(token), model.Password);
             if (result.Succeeded)
             {
-                
+
                 await userManager.UpdateSecurityStampAsync(user);
             }
             return result;
-             
+
         }
 
         [HttpPost]
+        [Route("EditProfile")]
         public async Task<IdentityResult> EditProfile(UserDto model)
         {
-           
-                User user = await userManager.FindByNameAsync(User.Identity.Name);
-                user.PhoneNumber = model.PhoneNumber;
-                IdentityResult result = await userManager.UpdateAsync(user);
+
+            User user = await userManager.FindByNameAsync(User.Identity.Name);
+            user.PhoneNumber = model.PhoneNumber;
+            IdentityResult result = await userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                result.Errors.ToList().ForEach(e => ModelState.AddModelError(e.Code, e.Description));
+                return result;
+            }
+            await userManager.UpdateSecurityStampAsync(user);
+            await signInManager.SignOutAsync();
+            await signInManager.SignInAsync(user, true);
+
+            return result;
+        }
+
+        [HttpPost]
+        [Route("EditPassword")]
+        public async Task<bool> EditPassword(UserDto model)
+        {
+
+            User user = await userManager.FindByNameAsync(User.Identity.Name);
+            if (await userManager.CheckPasswordAsync(user, model.OldPassword))
+            {
+                IdentityResult result = await userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
                 if (!result.Succeeded)
                 {
                     result.Errors.ToList().ForEach(e => ModelState.AddModelError(e.Code, e.Description));
-                    return result;
+                    return true;
                 }
                 await userManager.UpdateSecurityStampAsync(user);
                 await signInManager.SignOutAsync();
                 await signInManager.SignInAsync(user, true);
-            
-            return result;
-        }
+            }
 
-        [HttpPost]
-        public async Task<bool> EditPassword(UserDto model)
-        {
-            
-                User user = await userManager.FindByNameAsync(User.Identity.Name);
-                if (await userManager.CheckPasswordAsync(user, model.OldPassword))
-                {
-                    IdentityResult result = await userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
-                    if (!result.Succeeded)
-                    {
-                        result.Errors.ToList().ForEach(e => ModelState.AddModelError(e.Code, e.Description));
-                        return true;
-                    }
-                    await userManager.UpdateSecurityStampAsync(user);
-                    await signInManager.SignOutAsync();
-                    await signInManager.SignInAsync(user, true);
-                }
-            
             return false;
         }
 
         [HttpPost]
+        [Route("Logout")]
         public async Task<bool> Logout()
         {
             await signInManager.SignOutAsync();
