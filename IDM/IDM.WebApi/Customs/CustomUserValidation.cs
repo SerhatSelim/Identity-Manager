@@ -12,11 +12,11 @@ namespace IDM.WebApi.Customs
         {
             List<IdentityError> errors = new List<IdentityError>();
 
-            if (int.TryParse(user.UserName[0].ToString(), out int _)) 
+            if (int.TryParse(user.UserName[0].ToString(), out int _))
                 errors.Add(new IdentityError { Code = "UserNameNumberStartWith", Description = "Kullanıcı adı sayısal ifadeyle başlayamaz..." });
-            if (user.UserName.Length < 3 && user.UserName.Length > 25) 
+            if (user.UserName.Length < 3 && user.UserName.Length > 25)
                 errors.Add(new IdentityError { Code = "UserNameLenhth", Description = "Kullanıcı adı 3 - 15 karakter arasında olmalıdır..." });
-            if (user.Email.Length > 70) 
+            if (user.Email.Length > 70)
                 errors.Add(new IdentityError { Code = "EmailLenhth", Description = "Email 70 karakterden fazla olamaz..." });
 
             if (!errors.Any())
@@ -24,3 +24,4 @@ namespace IDM.WebApi.Customs
             return Task.FromResult(IdentityResult.Failed(errors.ToArray()));
         }
     }
+}
