@@ -58,10 +58,11 @@ namespace IDM.WebApi.Controllers
                 }
                 else
                 {
-                    if (result.IsLockedOut)
-                        return result;
-                    else
-                        return result;
+                    //if (result.IsLockedOut)
+                    //    return result;
+                    //else
+                    //    return result;
+                    //return result;
                     return result;
                 }
             }
