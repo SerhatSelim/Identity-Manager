@@ -1,4 +1,5 @@
 ﻿using IDM.WebApi.Persistence.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -8,7 +9,7 @@ using System.Web;
 
 namespace IDM.WebApi.Controllers
 {
-    [Route("api")]
+    [Route("api/User")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -24,12 +25,33 @@ namespace IDM.WebApi.Controllers
 
         [HttpPost]
         [Route("CreateUserAsync")]
+        [Authorize(Policy = "UserClaimPositionPolicy")]
         public async Task<IdentityResult> CreateUserAsync([FromBody] User user)
         {
             var result = await userManager.CreateAsync(user, "1234.qqqQ");
 
             return result;
         }
+
+        [HttpPost]
+        [Route("LoginWClaim")]
+        public async Task<Microsoft.AspNetCore.Identity.SignInResult> LoginWClaim(UserDto model)
+        {
+            User user = await userManager.FindByEmailAsync(model.Email);
+            var userClaims = await userManager.GetClaimsAsync(user);
+           
+                Microsoft.AspNetCore.Identity.SignInResult result = await signInManager.PasswordSignInAsync(user, model.Password, true, true);
+                if (result.Succeeded)
+                {
+                    System.Security.Claims.Claim claim = new System.Security.Claims.Claim("pozisyon", "admin");
+                    if (!userClaims.Any(x => x.Type == "pozisyon"))
+                        await userManager.AddClaimAsync(user, claim);
+                  
+                }
+
+            return result;
+        }
+
 
 
         [HttpPost]
@@ -77,6 +99,7 @@ namespace IDM.WebApi.Controllers
 
         [HttpPost]
         [Route("PasswordReset")]
+        [Authorize(Roles = "Admin")]
         public async Task<string> PasswordReset([FromBody] UserDto userDto)
         {
             User user = await userManager.FindByEmailAsync(userDto.Email);
